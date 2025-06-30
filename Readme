@@ -1,1 +1,13 @@
+This repository contains a raw data file ``V32HL56-efficiency test.txt``
+with pump efficiency measurements.  The script ``plot_efficiencies.py``
+reads the data, sorts it by speed, displacement and pressure and
+produces line plots for hydromechanical, volumetric and overall
+efficiencies versus speed.
 
+Usage:
+
+```
+python plot_efficiencies.py
+```
+
+Generated plots are stored in the ``plots`` directory.
