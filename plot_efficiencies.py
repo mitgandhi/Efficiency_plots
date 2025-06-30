@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
-"""Plot pump efficiencies from data file.
+"""Plot pump efficiencies from CSV data.
 
-Reads ``V32HL56-efficiency test.txt`` and generates line plots of
-hydromechanical, volumetric and overall efficiencies versus speed.
-The data are first sorted by speed, displacement and pressure.
-For each displacement and pressure combination a set of lines is drawn.
+The repository already contains a CSV file with the efficiency
+measurements (``V32HL56-efficiency.csv``).  This script reads the CSV,
+groups the data by *rounded* displacement and pressure difference and
+generates three plots for each displacement:
+
+``Etat`` vs speed,
+``Etav`` vs speed and
+``Etam`` vs speed.
 """
 
 import csv
@@ -12,11 +16,14 @@ import os
 from collections import defaultdict
 import matplotlib.pyplot as plt
 
-DATA_FILE = "V32HL56-efficiency test.txt"
+DATA_FILE = "V32HL56-efficiency.csv"
 
 
 def read_data(file_path: str = DATA_FILE):
-    """Return list of rows from the CSV file sorted by speed, displacement and pressure."""
+    """Return list of rows sorted by speed, displacement and pressure.
+
+    All numeric fields are converted to ``float`` for easier processing.
+    """
     rows = []
     with open(file_path, newline="") as f:
         reader = csv.DictReader(f)
@@ -30,46 +37,43 @@ def read_data(file_path: str = DATA_FILE):
 
 
 def group_data(rows):
-    """Group rows by (displacement, pressure difference)."""
+    """Group rows by rounded displacement and pressure difference."""
     grouped = defaultdict(list)
     for row in rows:
-        key = (row["Displacement"], row["Deltap"])
+        disp = int(round(row["Displacement"]))
+        key = (disp, row["Deltap"])
         grouped[key].append(row)
     return grouped
 
 
 def plot_grouped(groups, output_dir="plots"):
-    """Create efficiency plots for every displacement and pressure group."""
+    """Create efficiency plots for every displacement."""
     os.makedirs(output_dir, exist_ok=True)
     by_disp = defaultdict(list)
     for (disp, dp), data in groups.items():
         by_disp[disp].append((dp, data))
 
-    labels = [
-        "Hydromechanical $\\eta_m$",
-        "Volumetric $\\eta_v$",
-        "Overall $\\eta_t$",
-    ]
-    keys = ["Etam", "Etav", "Etat"]
+    labels = {
+        "Etat": "Overall $\\eta_t$",
+        "Etav": "Volumetric $\\eta_v$",
+        "Etam": "Hydromechanical $\\eta_m$",
+    }
 
     for disp, dp_groups in by_disp.items():
-        fig, axes = plt.subplots(3, 1, sharex=True, figsize=(8, 10))
+        for key, label in labels.items():
+            plt.figure()
+            for dp, data in sorted(dp_groups, key=lambda t: t[0]):
+                speeds = [row["Speed"] for row in data]
+                plt.plot(speeds, [row[key] for row in data], label=f"Δp={dp:.2f}")
 
-        for dp, data in sorted(dp_groups, key=lambda t: t[0]):
-            speeds = [row["Speed"] for row in data]
-            for ax, key, label in zip(axes, keys, labels):
-                ax.plot(speeds, [row[key] for row in data], label=f"Δp={dp:.2f}")
-                ax.set_ylabel(label)
-                ax.grid(True)
-
-        for ax in axes:
-            ax.legend()
-        axes[-1].set_xlabel("Speed")
-        fig.suptitle(f"Displacement {disp:.2f} cc/rev")
-        fig.tight_layout(rect=[0, 0.03, 1, 0.95])
-        out_path = os.path.join(output_dir, f"efficiency_{disp:.2f}.png")
-        plt.savefig(out_path)
-        plt.close(fig)
+            plt.xlabel("Speed")
+            plt.ylabel(label)
+            plt.title(f"{label} vs Speed (Displacement {disp} cc/rev)")
+            plt.grid(True)
+            plt.legend()
+            out_name = f"{key.lower()}_vs_speed_disp_{disp}.png"
+            plt.savefig(os.path.join(output_dir, out_name))
+            plt.close()
 
 
 def main():
