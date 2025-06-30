@@ -15,7 +15,7 @@ Output_sepa= "Efficiency_plots"
 def load_and_prepare_data(file_path: str = DATA_FILE):
     df = pd.read_csv(file_path)
 
-    # Round displacement to nearest cc and Deltap to nearest 0.5 MPa
+    # Round displacement to nearest cc and Δp to the nearest 0.1 MPa
     df["RoundedDisplacement"] = df["Displacement"].round().astype(int)
     df["RoundedDeltap"] = df["Deltap"].round(1)  # e.g., 8.0 MPa, 8.5 MPa
 
