@@ -5,8 +5,6 @@ import os
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import os
 
 DATA_FILE = "V32HL56-efficiency.csv"
 OUTPUT_DIR = "corrected_plots"
