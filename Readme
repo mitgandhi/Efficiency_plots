@@ -1,18 +1,3 @@
-This repository contains a raw data file ``V32HL56-efficiency test.txt``
-with pump efficiency measurements.  Use ``txt_to_csv.py`` to convert
-the text file to ``V32HL56-efficiency.csv``.  The script
-``plot_efficiencies.py`` reads the CSV data, sorts it by speed,
-displacement and pressure and produces line plots for hydromechanical,
-volumetric and overall efficiencies versus speed.
 
-Usage:
-
-Convert the text data to CSV::
-
-    python txt_to_csv.py
-
-Then generate the efficiency plots::
-
-    python plot_efficiencies.py
 
 Generated plots are stored in the ``plots`` directory.
