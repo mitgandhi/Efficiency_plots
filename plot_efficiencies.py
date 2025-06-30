@@ -130,8 +130,15 @@ def plot_efficiency_contours(df: pd.DataFrame, output_dir="contour_plots"):
             Z = pivot.values
 
             plt.figure(figsize=(8, 6))
-            contour = plt.contourf(X, Y, Z, levels=20, cmap="viridis")
-            cbar = plt.colorbar(contour)
+            # Use pcolormesh so only existing data are drawn with no interpolation
+            mesh = plt.pcolormesh(
+                X,
+                Y,
+                np.ma.masked_invalid(Z),
+                cmap="viridis",
+                shading="nearest",
+            )
+            cbar = plt.colorbar(mesh)
             cbar.set_label(eff_label)
 
             plt.xlabel("Δp [MPa]")
@@ -164,27 +171,26 @@ def plot_total_efficiency_field(df: pd.DataFrame, output_dir="efficiency_fields"
         Z = pivot.values
 
         plt.figure(figsize=(8, 6))
-        # Automatically determine contour levels based on efficiency range.
         # NaN values can appear in Z if some speed/pressure combinations are
-        # missing. Using nanmin/nanmax ensures valid ranges are computed even
-        # when NaNs are present.
+        # missing. Skip plotting if nothing is available.
         if np.all(~np.isfinite(Z)):
-            # Skip if there are no finite values to contour
             continue
 
+        masked_Z = np.ma.masked_invalid(Z)
         min_eff = np.floor(np.nanmin(Z))
         max_eff = np.ceil(np.nanmax(Z))
-        if max_eff < min_eff:
-            levels = [min_eff]
-        else:
-            levels = np.arange(min_eff, max_eff + 1, 2)
-        contour = plt.contourf(X, Y, Z, levels=levels, cmap="inferno", extend='both')
-        cbar = plt.colorbar(contour)
-        cbar.set_label("Total Efficiency [%]")
 
-        # Add contour labels
-        line_contours = plt.contour(X, Y, Z, levels=levels, colors="black", linewidths=0.5)
-        plt.clabel(line_contours, inline=True, fontsize=8, fmt="%.0f")
+        mesh = plt.pcolormesh(
+            X,
+            Y,
+            masked_Z,
+            cmap="inferno",
+            shading="nearest",
+            vmin=min_eff,
+            vmax=max_eff,
+        )
+        cbar = plt.colorbar(mesh)
+        cbar.set_label("Total Efficiency [%]")
 
         # Labels and style
         plt.xlabel("Pressure difference Δp [MPa]")
