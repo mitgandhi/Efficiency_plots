@@ -166,7 +166,10 @@ def plot_total_efficiency_field(df: pd.DataFrame, output_dir="efficiency_fields"
         Z = pivot.values
 
         plt.figure(figsize=(8, 6))
-        levels = np.arange(60, 101, 2)  # Contour levels from 60% to 100%
+        # Automatically determine contour levels based on efficiency range
+        min_eff = np.floor(Z.min())
+        max_eff = np.ceil(Z.max())
+        levels = np.arange(min_eff, max_eff + 1, 2)
         contour = plt.contourf(X, Y, Z, levels=levels, cmap="inferno", extend='both')
         cbar = plt.colorbar(contour)
         cbar.set_label("Total Efficiency [%]")
